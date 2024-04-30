@@ -1,11 +1,11 @@
-# AWS Airflow CI/CD
+# AWS MWAA Airflow CI/CD Pipeline
 
-This repository contains a CI/CD pipeline for deploying Airflow DAGs using Docker and AWS S3.
+This repository contains a CI/CD pipeline for deploying Airflow DAGs on AWS Managed Workflows for Apache Airflow (MWAA) using GitHub Actions and AWS S3.
 
 ## Introduction
 
-This project aims to streamline the process of deploying Airflow DAGs by leveraging Docker containers and AWS S3 for storage. 
-The continuous integration and continuous deployment (CI/CD) pipeline automates the deployment process, ensuring that changes to DAGs are quickly and reliably propagated to the Airflow environment.
+The CI/CD pipeline automates the deployment process, ensuring that changes to DAGs are quickly and reliably propagated to the Airflow environment on AWS MWAA.
+
 
 ## Setup
 
@@ -13,14 +13,15 @@ The continuous integration and continuous deployment (CI/CD) pipeline automates 
 
 Before using this pipeline, ensure you have the following prerequisites installed:
 
-- Docker
-- AWS CLI
+- Access to an AWS MWAA environment
+- GitHub repository with your Airflow DAGs
+- AWS CLI configured with appropriate permissions
 
 ### Configuration
 
 1. Clone this repository to your local machine.
-2. Configure your AWS credentials using the `aws configure` command or by setting environment variables.
-3. Customize the DAGs in the `dags` directory according to your requirements.
+2. Customize the DAGs in the `dags` directory according to your requirements.
+3. Set up your AWS credentials and region in your GitHub repository secrets.
 
 ## Usage
 
@@ -33,19 +34,6 @@ To deploy your DAGs using the CI/CD pipeline, follow these steps:
 3. The CI/CD pipeline will automatically trigger on each push to the `main` branch.
 4. The pipeline will build a Docker image, run unit tests, deploy the DAGs to AWS S3, and trigger Airflow to reload the DAGs.
 
-### Manual Deployment
-
-If you prefer manual deployment, you can use the following commands:
-
-- To build the Docker image: `docker build -t airflow-dags .`
-- To run unit tests: `docker run airflow-dags python tests/test_dag.py`
-- To deploy DAGs to S3: `aws s3 cp dags/ s3://airflowdockercicd/dags/ --recursive --delete`
-
-## Folder Structure
-
-- `dags`: Contains Airflow DAG files.
-- `tests`: Contains unit and integration tests for the DAGs.
-- `.github/workflows`: Contains GitHub Actions workflow files for CI/CD.
 
 ## Contributing
 

@@ -2,8 +2,8 @@ name: CI/CD for Airflow DAG
 
 on:
   push:
-    branches:
-      - main
+    paths:
+      - 'dags/**' # Trigger the workflow only when changes occur in the 'dags' directory
 
 jobs:
   test:
