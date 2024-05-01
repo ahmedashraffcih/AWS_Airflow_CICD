@@ -5,6 +5,7 @@ from modules.generate_data import generate_dummy_data
 from modules.transform_data import transform_data
 from airflow.models import Variable
 import airflow
+from airflow.hooks.S3_hook import S3Hook
 
 default_args = {
     'owner': 'airflow',

@@ -1,12 +1,7 @@
 import pandas as pd
-from airflow.hooks.S3_hook import S3Hook
 
 def transform_data(df):
-    # Load CSV file from S3
-    s3_hook = S3Hook(aws_conn_id="conn_id")  # Update with your AWS connection ID
-    csv_buffer = s3_hook.read_key(key, bucket_name=bucket_name)
-    df = pd.read_csv(csv_buffer)
-
+    
     df['Date'] = pd.to_datetime(df['Date'])
     df['Date'].fillna('1970-01-01', inplace=True)
     
