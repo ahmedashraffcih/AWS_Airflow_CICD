@@ -24,12 +24,11 @@ def transform_step(df):
     final_df = transform_data(df)
     return final_df
 
-def save_to_s3(df, bucket_name, key):
+def save_to_s3(df,conn_id, bucket_name, key):
     # Save DataFrame to CSV and upload to S3
     csv_buffer = df.to_csv(index=False)
     
-    conn_id = Variable.get("aws_connect")  # Assuming you've configured the connection ID in Airflow Variables
-    s3_hook = airflow.hooks.S3Hook(conn_id)
+    s3_hook = S3Hook(aws_conn_id=conn_id)
     
     # Upload the file to S3
     s3_hook.load_string(
@@ -63,6 +62,7 @@ save_to_s3_task = PythonOperator(
     task_id='save_to_s3',
     python_callable=save_to_s3,
     op_kwargs={
+        'conn_id' : 'aws_connect',
         'df': transform_step_task.output,
         'bucket_name': 'tf-mwaa-airflow-bucket',
         'key': 'dummy_data.csv'
