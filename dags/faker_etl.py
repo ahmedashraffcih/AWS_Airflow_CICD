@@ -37,7 +37,19 @@ def save_to_s3(df,conn_id, bucket_name, key):
         bucket_name=bucket_name,
         replace=True
     )
-
+def load_to_s3(df,conn_id, bucket_name, key):
+    # Save DataFrame to CSV and upload to S3
+    csv_buffer = df.to_csv(index=False)
+    
+    s3_hook = S3Hook(aws_conn_id=conn_id)
+    
+    # Upload the file to S3
+    s3_hook.load_string(
+        string_data=csv_buffer,
+        key=key,
+        bucket_name=bucket_name,
+        replace=True
+    )
 dag = DAG(
     'etl_pipeline',
     default_args=default_args,
@@ -63,11 +75,21 @@ save_to_s3_task = PythonOperator(
     python_callable=save_to_s3,
     op_kwargs={
         'conn_id' : 'aws_connect',
-        'df': transform_step_task.output,
+        'df': extract_data_task.output,
         'bucket_name': 'tf-mwaa-airflow-bucket',
-        'key': 'dummy_data.csv'
+        'key': 'raw/dummy_data.csv'
     },
     dag=dag,
 )
-
-extract_data_task >> transform_step_task >> save_to_s3_task
+load_task = PythonOperator(
+    task_id='load',
+    python_callable=load_to_s3,
+    op_kwargs={
+        'conn_id' : 'aws_connect',
+        'df': transform_step_task.output,
+        'bucket_name': 'tf-mwaa-airflow-bucket',
+        'key': 'output/final_data.csv'
+    },
+    dag=dag,
+)
+extract_data_task >> save_to_s3_task >> transform_step_task >> load_task
