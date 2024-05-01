@@ -12,6 +12,16 @@ default_args = {
     'start_date': datetime(2024, 4, 30),
     'retries': 1,
 }
+def extract_data(**kwargs):
+    print("Extracting started ")
+    ti = kwargs['ti']
+    df = generate_dummy_data(100)
+    return df
+
+def transform_step(df, **kwargs):
+    print("Transforming data")
+    final_df = transform_data(df)
+    return final_df
 
 def save_to_s3(df, bucket_name, key):
     # Save DataFrame to CSV and upload to S3
@@ -35,20 +45,17 @@ dag = DAG(
     schedule_interval='@daily',
 )
 
-generate_data_task = PythonOperator(
-    task_id='generate_dummy_data',
-    python_callable=generate_dummy_data,
-    op_kwargs={'num_rows': 10},
+extract_data_task = PythonOperator(
+    task_id='extract_data',
+    python_callable=extract_data,
+    provide_context=True,
     dag=dag,
 )
 
-transform_data_task = PythonOperator(
-    task_id='transform_data',
-    python_callable=transform_data,
-    op_kwargs={
-        'bucket_name': 'tf-mwaa-airflow-bucket',
-        'key': 'dummy_data.csv'
-    },
+transform_step_task = PythonOperator(
+    task_id='transform_step',
+    python_callable=transform_step,
+    provide_context=True,
     dag=dag,
 )
 
@@ -56,11 +63,11 @@ save_to_s3_task = PythonOperator(
     task_id='save_to_s3',
     python_callable=save_to_s3,
     op_kwargs={
-        'df': '{{ task_instance.xcom_pull(task_ids="generate_dummy_data") }}',
+        'df': "{{ task_instance.xcom_pull(task_ids='transform_step') }}",
         'bucket_name': 'tf-mwaa-airflow-bucket',
         'key': 'dummy_data.csv'
     },
     dag=dag,
 )
 
-generate_data_task >> save_to_s3_task >> transform_data_task
+extract_data_task >> transform_step_task >> save_to_s3_task
