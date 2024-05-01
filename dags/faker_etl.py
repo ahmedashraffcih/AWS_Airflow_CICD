@@ -16,8 +16,7 @@ def save_to_s3(df, bucket_name, key):
     # Save DataFrame to CSV and upload to S3
     csv_buffer = df.to_csv(index=False)
     
-    # Use the Airflow connection to get S3 credentials
-    conn_id = Variable.get("s3_connection_id")  # Assuming you've configured the connection ID in Airflow Variables
+    conn_id = Variable.get("aws_connect")  # Assuming you've configured the connection ID in Airflow Variables
     s3_hook = airflow.hooks.S3Hook(conn_id)
     
     # Upload the file to S3
@@ -45,7 +44,10 @@ generate_data_task = PythonOperator(
 transform_data_task = PythonOperator(
     task_id='transform_data',
     python_callable=transform_data,
-    op_kwargs={'df': '{{ task_instance.xcom_pull(task_ids="generate_dummy_data") }}'},
+    op_kwargs={
+        'bucket_name': 'tf-mwaa-airflow-bucket',
+        'key': 'dummy_data.csv'
+    },
     dag=dag,
 )
 
@@ -53,11 +55,11 @@ save_to_s3_task = PythonOperator(
     task_id='save_to_s3',
     python_callable=save_to_s3,
     op_kwargs={
-        'df': '{{ task_instance.xcom_pull(task_ids="transform_data") }}',
+        'df': '{{ task_instance.xcom_pull(task_ids="generate_dummy_data") }}',
         'bucket_name': 'tf-mwaa-airflow-bucket',
-        'key': 'transformed_data.csv'
+        'key': 'dummy_data.csv'
     },
     dag=dag,
 )
 
-generate_data_task >> transform_data_task >> save_to_s3_task
+generate_data_task >> save_to_s3_task >> transform_data_task
