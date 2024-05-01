@@ -1,7 +1,7 @@
 import pandas as pd
 
 def transform_data(df):
-    df.fillna({'Date': '1970-01-01'}, inplace=True) 
+    df['Date'].fillna('1970-01-01', inplace=True)
     df['Date'] = pd.to_datetime(df['Date'])
     
     grouped_data = df.groupby('ID').agg({
