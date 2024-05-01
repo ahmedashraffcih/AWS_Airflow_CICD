@@ -3,7 +3,8 @@ from airflow.operators.python_operator import PythonOperator
 from datetime import datetime
 from modules.generate_data import generate_dummy_data
 from modules.transform_data import transform_data
-import boto3
+from airflow.models import Variable
+import airflow
 
 default_args = {
     'owner': 'airflow',
@@ -14,9 +15,18 @@ default_args = {
 def save_to_s3(df, bucket_name, key):
     # Save DataFrame to CSV and upload to S3
     csv_buffer = df.to_csv(index=False)
-    s3 = boto3.resource('s3')
-    obj = s3.Object(bucket_name, key)
-    obj.put(Body=csv_buffer)
+    
+    # Use the Airflow connection to get S3 credentials
+    conn_id = Variable.get("s3_connection_id")  # Assuming you've configured the connection ID in Airflow Variables
+    s3_hook = airflow.hooks.S3Hook(conn_id)
+    
+    # Upload the file to S3
+    s3_hook.load_string(
+        string_data=csv_buffer,
+        key=key,
+        bucket_name=bucket_name,
+        replace=True
+    )
 
 dag = DAG(
     'etl_pipeline',

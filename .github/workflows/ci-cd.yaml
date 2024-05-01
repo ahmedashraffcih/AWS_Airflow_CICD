@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'dags/**' # Trigger the workflow only when changes occur in the 'dags' directory
+      - 'modules/**' # Trigger the workflow only when changes occur in the 'modules' directory
 
 jobs:
   test:
@@ -27,7 +28,7 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_*.py'
 
   deploy:
-    name: Deploy DAG to S3
+    name: Deploy DAGs and Modules to S3
     runs-on: ubuntu-latest
     needs: test
     if: success()
@@ -46,7 +47,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install boto3
 
-      - name: Deploy DAG to S3
+      - name: Deploy DAGs to S3
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -55,5 +56,15 @@ jobs:
           aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
           aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
           aws configure set default.region $AWS_DEFAULT_REGION
-          aws s3 cp dags/faker_etl.py s3://tf-mwaa-airflow-bucket/dags/faker_etl.py
-        
+          aws s3 cp dags/ s3://tf-mwaa-airflow-bucket/dags/ --recursive
+    
+      - name: Deploy Modules to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: eu-west-1
+        run: |
+          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+          aws configure set default.region $AWS_DEFAULT_REGION
+          aws s3 cp modules/ s3://tf-mwaa-airflow-bucket/dags/modules/ --recursive
