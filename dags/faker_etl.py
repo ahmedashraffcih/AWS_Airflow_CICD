@@ -12,13 +12,14 @@ default_args = {
     'start_date': datetime(2024, 4, 30),
     'retries': 1,
 }
-def extract_data(**kwargs):
+def extract_data():
     print("Extracting started ")
-    ti = kwargs['ti']
+    # ti = kwargs['ti']
     df = generate_dummy_data(100)
     return df
 
-def transform_step(df, **kwargs):
+def transform_step(df):
+    # ti = kwargs['ti']
     print("Transforming data")
     final_df = transform_data(df)
     return final_df
@@ -48,14 +49,13 @@ dag = DAG(
 extract_data_task = PythonOperator(
     task_id='extract_data',
     python_callable=extract_data,
-    provide_context=True,
     dag=dag,
 )
 
 transform_step_task = PythonOperator(
     task_id='transform_step',
     python_callable=transform_step,
-    provide_context=True,
+    op_args=[extract_data_task.output],
     dag=dag,
 )
 
@@ -63,7 +63,7 @@ save_to_s3_task = PythonOperator(
     task_id='save_to_s3',
     python_callable=save_to_s3,
     op_kwargs={
-        'df': "{{ task_instance.xcom_pull(task_ids='transform_step') }}",
+        'df': transform_step_task.output,
         'bucket_name': 'tf-mwaa-airflow-bucket',
         'key': 'dummy_data.csv'
     },
