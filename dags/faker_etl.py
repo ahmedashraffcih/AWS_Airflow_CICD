@@ -38,7 +38,7 @@ dag = DAG(
 generate_data_task = PythonOperator(
     task_id='generate_dummy_data',
     python_callable=generate_dummy_data,
-    op_kwargs={'num_rows': 1000},
+    op_kwargs={'num_rows': 10},
     dag=dag,
 )
 
