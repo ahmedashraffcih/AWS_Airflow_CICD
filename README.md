@@ -6,6 +6,12 @@ This repository contains a CI/CD pipeline for deploying Airflow DAGs on AWS Mana
 
 The CI/CD pipeline automates the deployment process, ensuring that changes to DAGs are quickly and reliably propagated to the Airflow environment on AWS MWAA.
 
+## Features
+
+- Continuous Integration: Automatically runs unit tests whenever changes are pushed to the repository to ensure code quality.
+- Continuous Deployment: Automates the deployment process, pushing updated DAGs and requirements files to AWS S3 for Airflow to consume.
+- Integration with AWS MWAA: Seamlessly integrates with AWS Managed Workflows for Apache Airflow, allowing for efficient management and execution of DAGs.
+- GitHub Actions: Utilizes GitHub Actions for orchestrating the CI/CD pipeline, providing a flexible and configurable automation framework.
 
 ## Setup
 
